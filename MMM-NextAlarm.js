@@ -1,28 +1,30 @@
-/* MMM-NextAlarm — temps restant avant la prochaine alarme Home Assistant.
- * Visible seulement le soir (à partir de showFrom la veille) jusqu'à l'alarme.
- * Le jeton HA est lu côté serveur (node_helper, env MM_HASS_TOKEN), jamais envoyé au navigateur. */
+/* MMM-NextAlarm
+ * Shows the time left until the next alarm stored in Home Assistant, as HH:mm.
+ * Visible only in the evening (from `showFrom` o'clock the day before the alarm)
+ * until the alarm time. The Home Assistant token is read by the node_helper on
+ * the server and is never sent to the browser. */
 Module.register("MMM-NextAlarm", {
 	defaults: {
 		hassUrl: "http://homeassistant.local:8123",
-		alarmEntity: "input_datetime.next_alarm",
-		modeEntity: "input_select.reveil",
-		noAlarmModes: ["Aucun"],
-		showFrom: 21,               // heure (veille de l'alarme) à partir de laquelle on affiche
+		alarmEntity: "sensor.next_alarm",
+		modeEntity: null,          // optional entity that can disable the display
+		noAlarmModes: [],          // states of modeEntity meaning "no alarm"
+		showFrom: 21,              // hour (day before the alarm) when the display starts
 		symbol: "⏰",
-		fetchInterval: 60 * 1000,
-		tickInterval: 15 * 1000
+		fetchInterval: 60 * 1000,  // how often Home Assistant is queried (ms)
+		tickInterval: 15 * 1000    // how often the countdown is redrawn (ms)
 	},
 
 	start () {
-		this.alarm = null; // Date ou null
+		this.alarm = null;
 		this.sendSocketNotification("NEXTALARM_CONFIG", this.config);
 		setInterval(() => this.updateDom(), this.config.tickInterval);
 	},
 
-	socketNotificationReceived (n, p) {
-		if (n !== "NEXTALARM_DATA") return;
-		this.alarm = p && !this.config.noAlarmModes.includes(p.mode) && p.timestamp
-			? new Date(p.timestamp * 1000) : null;
+	socketNotificationReceived (notification, payload) {
+		if (notification !== "NEXTALARM_DATA") return;
+		const disabled = payload.mode !== null && this.config.noAlarmModes.includes(payload.mode);
+		this.alarm = !disabled && payload.timestamp ? new Date(payload.timestamp) : null;
 		this.updateDom();
 	},
 
@@ -33,17 +35,17 @@ Module.register("MMM-NextAlarm", {
 		start.setHours(0, 0, 0, 0);
 		start.setTime(start.getTime() - (24 - this.config.showFrom) * 3600 * 1000);
 		if (now < start || now >= this.alarm) return null;
-		const min = Math.ceil((this.alarm - now) / 60000);
+		const minutes = Math.ceil((this.alarm - now) / 60000);
 		const pad = (x) => String(x).padStart(2, "0");
-		return `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+		return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 	},
 
 	getDom () {
 		const el = document.createElement("div");
-		const r = this.remaining();
+		const text = this.remaining();
 		el.className = "medium bright";
-		el.textContent = r ? `${this.config.symbol} ${r}` : "";
-		el.style.display = r ? "" : "none";
+		el.textContent = text ? `${this.config.symbol} ${text}`.trim() : "";
+		el.style.display = text ? "" : "none";
 		return el;
 	}
 });
