@@ -1,0 +1,14 @@
+.nextalarm-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.nextalarm-symbol {
+  margin-right: 0.35em;
+  font-size: 0.8em;
+}
+
+.nextalarm-time::before {
+  content: "· ";
+}
