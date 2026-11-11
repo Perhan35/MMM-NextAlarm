@@ -10,6 +10,7 @@ Module.register("MMM-NextAlarm", {
 		modeEntity: null,          // optional entity that can disable the display
 		noAlarmModes: [],          // states of modeEntity meaning "no alarm"
 		modeSymbols: {},           // state of modeEntity -> symbol shown next to the countdown
+		swapSymbols: false,        // true: mode symbol in front of the countdown (full size), alarm symbol small at the end
 		showFrom: 21,              // hour (day before the alarm) when the display starts
 		symbol: "⏰",              // symbol before the countdown: emoji/text or Font Awesome name ("" for none)
 		size: "medium",            // countdown size: "small", "medium", "large" or "xlarge"
@@ -110,7 +111,11 @@ Module.register("MMM-NextAlarm", {
 		if (this.config.warnBelow > 0 && minutes < this.config.warnBelow * 60) {
 			countdown.style.color = this.config.warnColor;
 		}
-		if (this.config.symbol) countdown.appendChild(this.icon(this.config.symbol, "nextalarm-symbol"));
+		const modeIcon = this.config.modeSymbols[this.mode];
+		const swap = this.config.swapSymbols && modeIcon;
+		const front = swap ? modeIcon : this.config.symbol;
+		const end = swap ? this.config.symbol : modeIcon;
+		if (front) countdown.appendChild(this.icon(front, swap ? "nextalarm-symbol nextalarm-symbol-mode" : "nextalarm-symbol"));
 		const pad = (x) => String(x).padStart(2, "0");
 		countdown.appendChild(document.createTextNode(`${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`));
 		line.appendChild(countdown);
@@ -124,8 +129,7 @@ Module.register("MMM-NextAlarm", {
 			line.appendChild(time);
 		}
 
-		const modeIcon = this.config.modeSymbols[this.mode];
-		if (modeIcon) line.appendChild(this.icon(modeIcon, "nextalarm-mode small dimmed"));
+		if (end) line.appendChild(this.icon(end, "nextalarm-mode small dimmed"));
 
 		wrapper.appendChild(line);
 		return wrapper;

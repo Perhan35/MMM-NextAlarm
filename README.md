@@ -51,6 +51,7 @@ The token stays on the server: it is used by the node_helper and never sent to t
 | `modeEntity` | `null` | Optional entity (e.g. an `input_select`) describing the alarm mode. |
 | `noAlarmModes` | `[]` | States of `modeEntity` meaning "no alarm", e.g. `["Off"]`. The module stays hidden in these states. |
 | `modeSymbols` | `{}` | Symbol shown after the countdown for each state of `modeEntity`, e.g. `{ Home: "🏠", Office: "💼" }`. |
+| `swapSymbols` | `false` | Show the mode symbol in front of the countdown at full size, and move `symbol` small to the end. |
 | `showFrom` | `21` | Hour (0–23) on the day before the alarm when the countdown starts showing. |
 | `symbol` | `"⏰"` | Symbol before the countdown. `""` for none. |
 | `size` | `"medium"` | Countdown size: `"small"`, `"medium"`, `"large"` or `"xlarge"`. |

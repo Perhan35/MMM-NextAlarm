@@ -12,3 +12,7 @@
 .nextalarm-time::before {
   content: "· ";
 }
+
+.nextalarm-symbol-mode {
+  font-size: 1em;
+}
